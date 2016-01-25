@@ -1,0 +1,7 @@
+#ifndef MEMOIRE_CONFIG_H
+#define MEMOIRE_CONFIG_H
+
+#define VERSION_MAJOR @hyg_usb_VERSION_MAJOR@
+#define VERSION_MINOR @hyg_usb_VERSION_MINOR@
+
+#endif
