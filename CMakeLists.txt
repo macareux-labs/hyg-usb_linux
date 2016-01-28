@@ -69,6 +69,14 @@ add_executable( "hyg_usb" ${src} ${hdr} )
 
 target_link_libraries( "hyg_usb" ${LIBUSB_1_LIBRARIES} )
 
+### Manpages generation
+
+add_custom_command( OUTPUT "test.txt"
+		   	COMMAND ls -all /* > "${CMAKE_CURRENT_BINARY_DIR}/test.txt" )
+
+add_custom_target( "manpages" DEPENDS test.txt ) 
+
+add_dependencies( "hyg_usb" "manpages" ) 
 
 ### Install 
 

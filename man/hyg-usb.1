@@ -1,0 +1,72 @@
+.TH hyg-usb 1  "January 28, 2016" "version 0.1" "USER COMMANDS"
+.SH NAME
+hyg-usb \- Command-line tool to control an hyg-usb device
+.SH SYNOPSIS
+hyg-usb [\-h] [\-v] [\-T] [\-H] [\-R] [\-Y] [\-G] 
+        [\-r led_mode] [\-y led_mode] [\-g led_mode]
+.SH DESCRIPTION
+hyg-usb is a small temperature and relative humidity sensor you can hack. This
+command line interface will allow you to read its data and control 
+the three leds interactively.
+.PP
+Each led can be in three modes : ON, OFF and AUTO. When set to AUTO, a given LED
+will blink each time a new measurement is made by the sensor.
+.SH OPTIONS
+.TP
+\-h
+display a short help text and exit
+.TP
+\-v
+dispay version number and exit
+.TP
+\-T
+display current temperature in Celcius
+.TP
+\-H
+display current relative humidity in %
+.TP
+\-R
+display current mode for red led
+.TP
+\-G
+display current mode for green led
+.TP
+\-Y
+display current mode for yellow led
+.TP
+\-r led_mode
+set mode for red led ( can be ON,OFF or AUTO )
+.TP
+\-g led_mode
+set mode for green led ( can be ON,OFF or AUTO )
+.TP
+\-y led_mode
+set mode for yellow led ( can be ON,OFF or AUTO )
+
+.PP
+when used without any option, hyg-usb will display temperature and relative humidity.
+
+.SH EXAMPLES
+.TP
+Turn on red led and turn off yellow led
+.B hyg-usb \-r ON \-y OFF
+.PP
+.TP
+Display Temperature
+.B hyg-usb \-T
+.PP
+.TP
+Display Temperature, Humidity and all led modes
+.B hyg-usb \-T \-H \-R \-G \-Y
+.PP
+.SH EXIT STATUS
+hyg-usb returns a zero exit status if the operation succeeds. Non zero is returned in case of failure.
+.SH AUTHOR
+Bulot (bulot (at) macareux-labs.com)
+.SH SEE ALSO
+.PP 
+latest source code : http://github.com/macareux-labs/hyg-usb_linux 
+.PP 
+hyg-usb firmware : http://github.com/macareux-labs/hyg-usb_firmware
+.PP 
+device information : www.macareux-labs.com
