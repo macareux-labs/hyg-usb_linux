@@ -9,9 +9,16 @@
 
 FIND_PROGRAM(NIX_BZIP2_PATH bzip2 PATHS /bin /usr/bin/ ENV PATH NO_DEFAULT_PATH )
 
+FIND_PROGRAM(NIX_ICONV_PATH iconv PATHS /bin /usr/bin/ ENV PATH NO_DEFAULT_PATH )
+
 if(NOT NIX_BZIP2_PATH)
 	message(WARNING "Could not find 'bzip2' command. Manpages will not be compressed.")
 endif(NOT NIX_BZIP2_PATH)
+
+
+if(NOT NIX_ICONV_PATH)
+	message(WARNING "Could not find 'iconv' command. Only UTF-8 manpages will be generated.")
+endif(NOT NIX_ICONV_PATH)
 
 
 ### Default manpage 
@@ -62,7 +69,30 @@ else(NIX_BZIP2_PATH)
 endif(NIX_BZIP2_PATH)
 
 
+### fr.ISO8859-1 manpage
+######
 
 
+if(NIX_ICONV_PATH)
 
+	add_custom_target( "man_fr_iso" ALL rm -fr ./fr.ISO8859-1 && cp -r "${PROJECT_SOURCE_DIR}/man/fr" fr.ISO8859-1
+		COMMAND  iconv -f UTF-8 -t ISO-8859-1
+		fr.ISO8859-1/man1/hyg-usb.1 > fr.ISO8859-1/man1/hyg-usb.ISO && mv  fr.ISO8859-1/man1/hyg-usb.ISO  fr.ISO8859-1/man1/hyg-usb.1  
+		COMMENT "Generating FR.ISO8859-1 manpage" )
+	
+	if(NIX_BZIP2_PATH)
+
+		add_custom_target( "man_fr_iso.gz" ALL ${NIX_BZIP2_PATH} -k -f "fr.ISO8859-1/man1/hyg-usb.1" 
+			COMMENT "Compressing fr.ISO8859-1 manpage" )
+
+		install(FILES "${CMAKE_CURRENT_BINARY_DIR}/fr.ISO8859-1/man1/hyg-usb.1.bz2"
+			DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/man/fr.ISO8859-1/man1" COMPONENT doc )
+
+	else(NIX_BZIP2_PATH)
+
+		install(FILES "fr.ISO8859-1/man1/hyg-usb.1"
+			DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/man/fr.ISO8859-1/man1" COMPONENT doc )
+		
+	endif(NIX_BZIP2_PATH)
+endif(NIX_ICONV_PATH)
 
