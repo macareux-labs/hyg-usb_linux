@@ -1,10 +1,16 @@
-### CMake file for hyg-usb-linux
+### CMakefile for hyg-usb-linux
 ###
 ###
 ###   - Feb 2016: Initial version <bulot@macareux-labs.com>
 ###
 ###
 ###############################################################################
+
+option ( INSTALL_MANPAGES "Generate and install manpages ?" ON )
+
+if ( INSTALL_MANPAGES )
+
+
 
 
 FIND_PROGRAM(NIX_BZIP2_PATH bzip2 PATHS /bin /usr/bin/ ENV PATH NO_DEFAULT_PATH )
@@ -96,3 +102,5 @@ if(NIX_ICONV_PATH)
 	endif(NIX_BZIP2_PATH)
 endif(NIX_ICONV_PATH)
 
+
+endif ( INSTALL_MANPAGES )
