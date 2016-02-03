@@ -16,7 +16,6 @@ endif(NOT NIX_BZIP2_PATH)
 
 ### Default manpage 
 
-
 if(NIX_BZIP2_PATH)
 
 	add_custom_target( "man.gz" ALL cp -r "${PROJECT_SOURCE_DIR}/man/man1" .
@@ -35,6 +34,23 @@ endif(NIX_BZIP2_PATH)
 
 
 ### fr manpage
+
+
+if(NIX_BZIP2_PATH)
+
+	add_custom_target( "man_fr.gz" ALL cp -r "${PROJECT_SOURCE_DIR}/man/fr" .
+		COMMAND ${NIX_BZIP2_PATH} -k -f "fr/man1/hyg-usb.1" 
+		COMMENT "Compressing fr manpage" )
+
+	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/fr/man1/hyg-usb.1.bz2"
+		DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/man/fr/man1" COMPONENT doc )
+
+else(NIX_BZIP2_PATH)
+
+	install(FILES "fr/man1/hyg-usb.1"
+       		DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/man/fr/man1" COMPONENT doc )
+
+endif(NIX_BZIP2_PATH)
 
 
 
