@@ -1,0 +1,72 @@
+.TH hyg-usb 1  "28 Janvier 2016" "version 0.1" "USER COMMANDS"
+.SH NOM
+hyg-usb \- Outil en ligne de commande pour le contrôle d'un périphérique hyg-usb
+.SH SYNOPSIS
+hyg-usb [\-h] [\-v] [\-T] [\-H] [\-R] [\-Y] [\-G] 
+        [\-r mode_led] [\-y mode_led] [\-g mode_led]
+.SH DESCRIPTION
+hyg-usb est un petit capteur de température et d'humidité relative que vous pouvez modifier à volontée.
+Cette interface en ligne de commande permet de consulter les valeurs mesurées et de contrôler interactivement
+les 3 Leds du périphérique.
+.PP
+Chaque Led peut être réglée seloon 3 modes de fonctionnement ; ON, OFF et AUTO. Quand elle est rêglée sur AUTO,
+une LED brillera à chaque fois qu'une nouvelle mesure est effectuée par le capteur.
+.SH OPTIONS
+.TP
+\-h
+affiche un petit texte d'aide
+.TP
+\-v
+affiche le numérod e version
+.TP
+\-T
+affiche la température courante en degré Celcius
+.TP
+\-H
+affiche l'humidité relative courante en  %
+.TP
+\-R
+affiche le mode de fonctionnement de la led rouge
+.TP
+\-G
+affiche le mode de fonctionnement de la led verte
+.TP
+\-Y
+affiche le mode de fonctionnement de la led jaune
+.TP
+\-r mode_led
+configure le mode de fonctionnement de la led rouge ( mode_led peut être : ON,OFF ou AUTO )
+.TP
+\-g mode_led
+configure le mode de fonctionnement de la led verte ( mode_led peut être : ON,OFF ou AUTO )
+.TP
+\-y mode_led
+configure le mode de fonctionnement de la led jaune ( mode_led peut être : ON,OFF ou AUTO )
+
+.PP
+Lancé sans option, hyg-usb affichera la température et l'humidité relative
+
+.SH EXEMPLES
+.TP
+Allume la led rouge et éteint la verte
+.B hyg-usb \-r ON \-y OFF
+.PP
+.TP
+Affiche la température
+.B hyg-usb \-T
+.PP
+.TP
+Affiche la température, l'humidité, et les modes de chacune des leds
+.B hyg-usb \-T \-H \-R \-G \-Y
+.PP
+.SH VALEUR RENVOYEE
+hyg-usb renvoie une valeur de zéro si l'opération s'est déroulée correctement.
+.SH AUTEUR
+Bulot (bulot (at) macareux-labs.com)
+.SH VOIR AUSSI
+.PP 
+Dernière version du code source : http://github.com/macareux-labs/hyg-usb_linux 
+.PP 
+Le firmware d'hyg-usb : http://github.com/macareux-labs/hyg-usb_firmware
+.PP 
+Information sur le capteur : www.macareux-labs.com
