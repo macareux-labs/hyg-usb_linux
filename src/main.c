@@ -13,7 +13,7 @@
 
 
 void print_usage() {
-	fprintf(stdout,"Usage: hyg_usb [options]\n" ) ;
+	fprintf(stdout,"Usage: hyg-usb [options]\n" ) ;
 	fprintf(stdout,"Options:\n") ;
 	fprintf(stdout," -h 	           \t display this help and exit\n"); 
 	fprintf(stdout," -v 	           \t display version number and exit\n"); 
@@ -27,9 +27,9 @@ void print_usage() {
 	fprintf(stdout," -G                \t display current setting of green led\n");
 	fprintf(stdout,"\n") ;
 	fprintf(stdout,"Examples:\n") ;
-	fprintf(stdout,"  hyg_usb -r ON                \t turns red led on \n");
-	fprintf(stdout,"  hyg_usb -r ON -g OFF -y AUTO \t turns red led on, green led off, and yellow led will blink \n");
-	fprintf(stdout,"  hyg_usb -T                   \t display current temperature\n");
+	fprintf(stdout,"  hyg-usb -r ON                \t turns red led on \n");
+	fprintf(stdout,"  hyg-usb -r ON -g OFF -y AUTO \t turns red led on, green led off, and yellow led will blink \n");
+	fprintf(stdout,"  hyg-usb -T                   \t display current temperature\n");
 }
 
 int main( int argc, char** argv, char** envv ) {
@@ -66,7 +66,7 @@ int main( int argc, char** argv, char** envv ) {
         while ((i = getopt (argc, argv, "vhr:y:g:THRYG")) != -1) {
     		switch (i) {
       			case 'v':
-				fprintf(stdout, "hyg_usb %d.%d (Linux)\n", VERSION_MAJOR, VERSION_MINOR ) ;
+				fprintf(stdout, "hyg-usb %d.%d (Linux)\n", VERSION_MAJOR, VERSION_MINOR ) ;
 				return EXIT_SUCCESS ;
 			case 'h':
 				print_usage() ;
@@ -134,7 +134,7 @@ int main( int argc, char** argv, char** envv ) {
         			} else {
           				fprintf (stderr, "Unknown option character `\\x%x'.\n",optopt);
 				}
-				fprintf(stderr,"Try \'hyg_usb -h\' for help\n") ; 
+				fprintf(stderr,"Try \'hyg-usb -h\' for help\n") ; 
 				return EXIT_FAILURE ;
 			default:
 				abort();
@@ -144,7 +144,7 @@ int main( int argc, char** argv, char** envv ) {
 
 	if ( optind < argc ) {
 		fprintf(stderr,"Wrong arguments\n");
-		fprintf(stderr,"Try \'hyg_usb -h\' for help\n") ; 
+		fprintf(stderr,"Try \'hyg-usb -h\' for help\n") ; 
 		return EXIT_FAILURE ;
 	}
 
@@ -160,7 +160,7 @@ int main( int argc, char** argv, char** envv ) {
         handle = libusb_open_device_with_vid_pid ( NULL, HYGUSB_VID, HYGUSB_PID ) ;
 	if ( handle == NULL ) {
 		fprintf(stderr,"Device not found.\n");
-		fprintf(stderr,"Please check hyg_usb is plugged and you are authorized to use USB\n") ;
+		fprintf(stderr,"Please check hyg-usb is plugged and you are authorized to use USB\n") ;
 		return EXIT_FAILURE ;
 	}
 
@@ -179,11 +179,11 @@ int main( int argc, char** argv, char** envv ) {
 
         r = libusb_interrupt_transfer(  handle, 0x01, data_out, 4,  &transferred, 5000 ) ;
 	if ( r!= 0 ) {
-		fprintf(stderr,"Could not send data to hyg_usb. Exiting.\n") ;
+		fprintf(stderr,"Could not send data to hyg-usb. Exiting.\n") ;
 		return EXIT_FAILURE ;
 	}
 	if ( transferred < 4 ) {
-		fprintf(stderr,"Short write to hyg_usb. Exiting.\n") ;
+		fprintf(stderr,"Short write to hyg-usb. Exiting.\n") ;
 		return EXIT_FAILURE ;
 	}
 
@@ -191,11 +191,11 @@ int main( int argc, char** argv, char** envv ) {
 
 	r = libusb_interrupt_transfer(  handle, 0x81, data_in, 8, &transferred, 5000 ) ;
 	if ( r!= 0 ) {
-		fprintf(stderr,"Could not read data from hyg_usb. Exiting.\n") ;
+		fprintf(stderr,"Could not read data from hyg-usb. Exiting.\n") ;
 		return EXIT_FAILURE ;
 	}
 	if ( transferred < 8 ) {
-		fprintf(stderr,"Short read from hyg_usb. Exiting.\n") ;
+		fprintf(stderr,"Short read from hyg-usb. Exiting.\n") ;
 		return EXIT_FAILURE ;
 	}
 

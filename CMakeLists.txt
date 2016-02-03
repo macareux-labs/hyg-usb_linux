@@ -1,4 +1,4 @@
-### CMake file for hyg_usb-linux
+### CMake file for hyg-usb-linux
 ###
 ###
 ###   - Jan 2016: Initial version <bulot@macareux-labs.com>
@@ -9,9 +9,9 @@
 
 cmake_minimum_required (VERSION 2.6)
 
-project (hyg_usb)
-set (hyg_usb_VERSION_MAJOR 0)
-set (hyg_usb_VERSION_MINOR 1)
+project (hyg-usb)
+set (hyg-usb_VERSION_MAJOR 0)
+set (hyg-usb_VERSION_MINOR 1)
 
 set( CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} /lib /usr/lib /usr/local/lib )
 set( CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} /usr/include /usr/local/include )
@@ -35,6 +35,8 @@ endforeach()
 
 
 ### Search for Lib/Headers
+
+include( GNUInstallDirs )
 
 find_package( libusb-1.0 REQUIRED)
 
@@ -62,28 +64,23 @@ file( GLOB hdr "src/*.h"  "include/*.h" )
 
 ### Targets
 
-add_executable( "hyg_usb" ${src} ${hdr} ) 
+add_executable( "hyg-usb" ${src} ${hdr} ) 
 
 
 ### Linking
 
-target_link_libraries( "hyg_usb" ${LIBUSB_1_LIBRARIES} )
-
-### Manpages generation
-
-add_custom_command( OUTPUT "test.txt"
-		   	COMMAND ls -all /* > "${CMAKE_CURRENT_BINARY_DIR}/test.txt" )
-
-add_custom_target( "manpages" DEPENDS test.txt ) 
-
-add_dependencies( "hyg_usb" "manpages" ) 
+target_link_libraries( "hyg-usb" ${LIBUSB_1_LIBRARIES} )
 
 ### Install 
 
 
-install( TARGETS "hyg_usb"
+install( TARGETS "hyg-usb"
 	    RUNTIME DESTINATION ${INSTALL_BIN_PATH}  COMPONENT main
 	    LIBRARY DESTINATION ${INSTALL_LIB_PATH}  COMPONENT main
             ARCHIVE DESTINATION ${INSTALL_AR_PATH}   COMPONENT main )
+
+install(FILES "man/hyg-usb.1"
+	DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/man/man1" COMPONENT doc )
+
 
 
