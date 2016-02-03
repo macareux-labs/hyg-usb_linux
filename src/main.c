@@ -148,6 +148,11 @@ int main( int argc, char** argv, char** envv ) {
 		return EXIT_FAILURE ;
 	}
 
+	if ( optind == 1 ) {
+		display_temp = 1 ;
+		display_hyg = 1 ;
+	}
+
 
 	// *** USB Communication
   
