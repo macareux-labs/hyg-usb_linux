@@ -10,7 +10,7 @@
 FIND_PROGRAM(NIX_BZIP2_PATH bzip2 PATHS /bin /usr/bin/ ENV PATH NO_DEFAULT_PATH )
 
 if(NOT NIX_BZIP2_PATH)
-	    message(FATAL_ERROR "Could not find 'bzip2' command. Manpages will not be compressed.")
+	message(WARNING "Could not find 'bzip2' command. Manpages will not be compressed.")
 endif(NOT NIX_BZIP2_PATH)
 
 
