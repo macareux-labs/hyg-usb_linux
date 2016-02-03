@@ -79,8 +79,7 @@ install( TARGETS "hyg-usb"
 	    LIBRARY DESTINATION ${INSTALL_LIB_PATH}  COMPONENT main
             ARCHIVE DESTINATION ${INSTALL_AR_PATH}   COMPONENT main )
 
-install(FILES "man/hyg-usb.1"
-	DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/man/man1" COMPONENT doc )
 
-
-
+### Manpage generation and install
+       
+add_subdirectory( "man" )
