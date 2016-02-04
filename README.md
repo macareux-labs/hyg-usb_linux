@@ -17,13 +17,13 @@ To compile this project, you will need to install:
 
 If you are running Debian or one of its siblings, just type as root :
 
-	apt-get install lib-1.0-0-dev
+	apt-get install libusb-1.0-0-dev
 
 iconv and bzip2 should already be installed on most systems.
 
 ### Getting the sources
 
-The sources are available on github: https://github.com/macareux-labs/hyg-usb\_linux
+The sources are available on github: https://github.com/macareux-labs/hyg-usb_linux
 You can retrieve them as a zip file with your favorite web browser or,better, just use git :
 
 	git clone https://github.com/macareux-labs/hyg-usb_linux.git
