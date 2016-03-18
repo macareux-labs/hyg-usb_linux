@@ -131,7 +131,7 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 	temp = 175.72 * temp_data / 65536.0 - 46.85 ;
 
 	if ( display_temp )
-		fprintf ( stdout, "%sTemp : %6.2f°\n", prefix, temp ) ;
+		fprintf ( stdout, "%sTemp : %6.2f°C\n", prefix, temp ) ;
 
 	// *** Display Green Led status
 	if ( display_green ) {
