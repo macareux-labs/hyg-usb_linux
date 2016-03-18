@@ -205,15 +205,16 @@ int main ( int argc, char **argv, char **envv ) {
 			display_green = 1 ;
 			break ;
 		case 'r':
-			if ( !parse_led_setstate ( &red_led, optarg, i ) )
+			if ( parse_led_setstate ( &red_led, optarg, i ) != 0 )
 				return EXIT_FAILURE ;
 			break ;
 		case 'y':
-			if ( !parse_led_setstate ( &yellow_led, optarg, i ) )
+			if ( parse_led_setstate ( &yellow_led, optarg, i ) !=
+			     0 )
 				return EXIT_FAILURE ;
 			break ;
 		case 'g':
-			if ( !parse_led_setstate ( &green_led, optarg, i ) )
+			if ( parse_led_setstate ( &green_led, optarg, i ) != 0 )
 				return EXIT_FAILURE ;
 			break ;
 		case 's':
@@ -287,10 +288,6 @@ int main ( int argc, char **argv, char **envv ) {
 		     && desc.idProduct == HYGUSB_PID ) {
 			int devBus = libusb_get_bus_number ( dev ) ;
 			int devAddress = libusb_get_device_address ( dev ) ;
-			fprintf ( stderr,
-				  "Found HYGUSB (%04x:%04x) at [%03d:%03d]\n",
-				  desc.idVendor, desc.idProduct, devBus,
-				  devAddress ) ;
 
 			if ( ( selectBus > 0 && devBus != selectBus ) ||
 			     ( selectAddress > 0
