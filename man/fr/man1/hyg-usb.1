@@ -2,7 +2,7 @@
 .SH NOM
 hyg-usb \- Outil en ligne de commande pour le contrôle d'un périphérique hyg-usb
 .SH SYNOPSIS
-hyg-usb [\-h] [\-v] [\-T] [\-H] [\-R] [\-Y] [\-G] 
+hyg-usb [\-h] [\-v] [\-T] [\-H] [\-R] [\-Y] [\-G]
         [\-r mode_led] [\-y mode_led] [\-g mode_led]
 .SH DESCRIPTION
 hyg-usb est un petit capteur de température et d'humidité relative que vous pouvez modifier à volonté.
@@ -42,6 +42,10 @@ configure le mode de fonctionnement de la led verte ( mode_led peut être : ON,O
 .TP
 \-y mode_led
 configure le mode de fonctionnement de la led jaune ( mode_led peut être : ON,OFF ou AUTO )
+.TP
+\-s bus:device
+filtre les périphériques par leur bus et/ou leur position (numérotation commençant à 1,
+0 désactive le filtre).
 
 .PP
 Lancé sans option, hyg-usb affichera la température et l'humidité relative
@@ -64,9 +68,9 @@ hyg-usb renvoie une valeur de zéro si l'opération s'est déroulée correctemen
 .SH AUTEUR
 Bulot (bulot (at) macareux-labs.com)
 .SH VOIR AUSSI
-.PP 
-Dernière version du code source : http://github.com/macareux-labs/hyg-usb_linux 
-.PP 
+.PP
+Dernière version du code source : http://github.com/macareux-labs/hyg-usb_linux
+.PP
 Le firmware d'hyg-usb : http://github.com/macareux-labs/hyg-usb_firmware
-.PP 
+.PP
 Information sur le capteur : www.macareux-labs.com
