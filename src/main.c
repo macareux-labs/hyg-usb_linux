@@ -48,8 +48,8 @@ int parse_led_setstate ( char *led, char *optarg, char arg ) {
 	return 0 ;
 }
 
-void display_led_status ( char *sPrefix, int state ) {
-	fprintf ( stdout, "%s LED : ", sPrefix ) ;
+void display_led_status ( const char *sPrefix, const char *sLedId, int state ) {
+	fprintf ( stdout, "%s%s LED : ", sPrefix, sLedId ) ;
 	switch ( state ) {
 	case 0x01:
 		fprintf ( stdout, "ON" ) ;
@@ -68,8 +68,8 @@ void display_led_status ( char *sPrefix, int state ) {
 }
 
 int
-process_device ( libusb_device_handle * handle, char red_led,
-		 char green_led, char yellow_led,
+process_device ( libusb_device_handle * handle, const char *prefix,
+		 char red_led, char green_led, char yellow_led,
 		 int display_temp, int display_hyg, int display_red,
 		 int display_green, int display_yellow ) {
 
@@ -89,10 +89,6 @@ process_device ( libusb_device_handle * handle, char red_led,
 	data_out[1] = yellow_led ;
 	data_out[2] = red_led ;
 	data_out[3] = 'A' ;
-
-	libusb_device *dev = libusb_get_device ( handle ) ;
-	int bus = libusb_get_bus_number ( dev ) ;
-	int device = libusb_get_device_address ( dev ) ;
 
 	r = libusb_interrupt_transfer ( handle, 0x01, data_out, 4, &transferred,
 					5000 ) ;
@@ -126,8 +122,7 @@ process_device ( libusb_device_handle * handle, char red_led,
 	hyg = 125.0 * hyg_data / 65536.0 - 6.0 ;
 
 	if ( display_hyg )
-		fprintf ( stdout, "[%03d:%03d] Hyg : %.1f \n", bus, device,
-			  hyg ) ;
+		fprintf ( stdout, "%sHyg  : %6.2f%%\n", prefix, hyg ) ;
 
 	// *** Display Temp
 	temp_data = data_in[2] << 8 ;
@@ -136,23 +131,19 @@ process_device ( libusb_device_handle * handle, char red_led,
 	temp = 175.72 * temp_data / 65536.0 - 46.85 ;
 
 	if ( display_temp )
-		fprintf ( stdout, "[%03d:%03d] Temp : %.1f \n", bus, device,
-			  temp ) ;
+		fprintf ( stdout, "%sTemp : %6.2f°\n", prefix, temp ) ;
 
 	// *** Display Green Led status
 	if ( display_green ) {
-		fprintf ( stdout, "[%03d:%03d] ", bus, device ) ;
-		display_led_status ( "Green", data_in[4] ) ;
+		display_led_status ( prefix, "Green ", data_in[4] ) ;
 	}
 	// *** Display Yellow Led status
 	if ( display_yellow ) {
-		fprintf ( stdout, "[%03d:%03d] ", bus, device ) ;
-		display_led_status ( "Yellow", data_in[5] ) ;
+		display_led_status ( prefix, "Yellow", data_in[5] ) ;
 	}
 	// *** Display Red Led status
 	if ( display_red ) {
-		fprintf ( stdout, "[%03d:%03d] ", bus, device ) ;
-		display_led_status ( "Red", data_in[6] ) ;
+		display_led_status ( prefix, "Red   ", data_in[6] ) ;
 	}
 
 	return EXIT_SUCCESS ;
@@ -176,6 +167,8 @@ int main ( int argc, char **argv, char **envv ) {
 	int selectBus = 0, selectAddress = 0 ;
 	int i, r ;
 	ssize_t cnt ;
+
+	char sDeviceAddress[20] ;
 	// *** CLI options parsing
 
 	opterr = 0 ;
@@ -313,10 +306,18 @@ int main ( int argc, char **argv, char **envv ) {
 				return EXIT_FAILURE ;
 			}
 
-			r = process_device ( handle, red_led, green_led,
-					     yellow_led, display_temp,
-					     display_hyg, display_red,
-					     display_green, display_yellow ) ;
+			if ( selectBus > 0 || selectAddress > 0 ) {
+				*sDeviceAddress = 0 ;
+			} else {
+				snprintf ( sDeviceAddress, 20, "[%03d:%03d] ",
+					   devBus, devAddress ) ;
+			}
+
+			r = process_device ( handle, sDeviceAddress, red_led,
+					     green_led, yellow_led,
+					     display_temp, display_hyg,
+					     display_red, display_green,
+					     display_yellow ) ;
 
 			libusb_close ( handle ) ;
 
