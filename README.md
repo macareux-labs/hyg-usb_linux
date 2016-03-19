@@ -51,7 +51,7 @@ Install the programm into the system to use
        hyg-usb [-h] [-v] [-T] [-H] [-R] [-Y] [-G]
                [-r led_mode] [-y led_mode] [-g led_mode]
 
-Each led can be in three modes : ON, OFF and AUTO. 
+Each led can be in three modes : ON, OFF and AUTO.
 When set to AUTO, a given LED will blink each time a new measurement is made by the sensor.
 
 
@@ -80,9 +80,12 @@ When set to AUTO, a given LED will blink each time a new measurement is made by 
        -y led_mode
               set mode for yellow led ( can be ON,OFF or AUTO )
 
+       -s bus:device
+              select device(s) based on bus number and/or device number
+              (0 mean any).
 
 when used without any option, hyg-usb will display temperature and relative humidity.
-														       
+
 
 ## Contributing
 
@@ -99,4 +102,3 @@ Feb 2016: V0.1 - First release
 ## License
 
 This project is placed under the MIT License. See LICENSE file for details
-
