@@ -306,12 +306,8 @@ int main ( int argc, char **argv, char **envv ) {
 				return EXIT_FAILURE ;
 			}
 
-			if ( selectBus > 0 || selectAddress > 0 ) {
-				*sDeviceAddress = 0 ;
-			} else {
-				snprintf ( sDeviceAddress, 20, "[%03d:%03d] ",
-					   devBus, devAddress ) ;
-			}
+                        snprintf ( sDeviceAddress, 20, "[%03d:%03d] ",
+                                   devBus, devAddress ) ;
 
 			r = process_device ( handle, sDeviceAddress, red_led,
 					     green_led, yellow_led,
