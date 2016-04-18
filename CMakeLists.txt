@@ -34,6 +34,11 @@ foreach(p LIB BIN HEADERS AR)
 endforeach()
 
 
+option ( HYG_INSTALL_MAN "Generate and install manpages ?" ON )
+option ( HYG_STATIC_LINK "Generate statically linked exec ?" OFF )
+
+
+
 ### Search for Lib/Headers
 
 include( GNUInstallDirs )
@@ -51,7 +56,7 @@ configure_file ( "${PROJECT_SOURCE_DIR}/config.h.in"
         
 include_directories( "${CMAKE_CURRENT_SOURCE_DIR}/lib/include"
 	             "${CMAKE_CURRENT_BINARY_DIR}"
-		     "${LIBUSB_1_INCLUDE_DIRS}" )
+		     ${LIBUSB_1_INCLUDE_DIRS} )
 
 # link_directories( "${VISION_LIBRARY_DIR}" )
 
@@ -81,5 +86,7 @@ install( TARGETS "hyg-usb"
 
 
 ### Manpage generation and install
-       
-add_subdirectory( "man" )
+      
+if ( HYG_INSTALL_MAN )
+	add_subdirectory( "man" )
+endif ( HYG_INSTALL_MAN )
