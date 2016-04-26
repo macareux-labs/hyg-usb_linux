@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <errno.h>
+#include <arpa/inet.h>
 
 #include <libusb.h>
 
@@ -11,6 +12,25 @@
 
 #define HYGUSB_VID      0x04D8
 #define HYGUSB_PID      0xF2C4
+
+
+typedef union {
+	struct {
+		u_int8_t msb ;
+		u_int8_t lsb ;
+	} ;
+	u_int16_t value ;
+} __DWORD ;
+
+typedef struct __attribute__ ((packed)) {
+	__DWORD hyg ;
+	__DWORD temp ;
+
+	u_int8_t green_led ;
+	u_int8_t yellow_led ;
+	u_int8_t red_led ;
+	signed char fill ;
+} __INTERNAL_DEVSTATE ;
 
 void print_usage (  ) {
 	fprintf ( stdout, "Usage: hyg-usb [options]\n" ) ;
@@ -75,8 +95,9 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 
 	int i, r ;
 	int transferred ;
-	unsigned char data_out[8] ;
-	unsigned char data_in[8] ;
+
+	__INTERNAL_DEVSTATE __dev_state;
+	unsigned char data_out[12] ;
 
 	int hyg_data ;
 	int temp_data ;
@@ -102,9 +123,12 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 		fprintf ( stderr, "Short write to hyg-usb. Exiting.\n" ) ;
 		return EXIT_FAILURE ;
 	}
+
 	// Read Data
-	r = libusb_interrupt_transfer ( handle, 0x81, data_in, 8, &transferred,
-					5000 ) ;
+	r = libusb_interrupt_transfer ( handle, 0x81, (unsigned char *)&__dev_state,
+					sizeof(__INTERNAL_DEVSTATE),
+					&transferred, 5000 ) ;
+
 	if ( r != 0 ) {
 		fprintf ( stderr,
 			  "Could not read data from hyg-usb (%s). Exiting.\n",
@@ -115,35 +139,30 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 		fprintf ( stderr, "Short read from hyg-usb. Exiting.\n" ) ;
 		return EXIT_FAILURE ;
 	}
-	// *** Display Hyg
-	hyg_data = data_in[0] << 8 ;
-	hyg_data += data_in[1] ;
 
-	hyg = 125.0 * hyg_data / 65536.0 - 6.0 ;
+	// *** Display Hyg
+	hyg = 125.0 * ntohs(__dev_state.hyg.value) / 65536.0 - 6.0 ;
 
 	if ( display_hyg )
 		fprintf ( stdout, "%sHyg  : %6.2f%%\n", prefix, hyg ) ;
 
 	// *** Display Temp
-	temp_data = data_in[2] << 8 ;
-	temp_data += data_in[3] ;
-
-	temp = 175.72 * temp_data / 65536.0 - 46.85 ;
+	temp = 175.72 * ntohs( __dev_state.temp.value ) / 65536.0 - 46.85 ;
 
 	if ( display_temp )
 		fprintf ( stdout, "%sTemp : %6.2f°C\n", prefix, temp ) ;
 
 	// *** Display Green Led status
 	if ( display_green ) {
-		display_led_status ( prefix, "Green ", data_in[4] ) ;
+		display_led_status ( prefix, "Green ", __dev_state.green_led ) ;
 	}
 	// *** Display Yellow Led status
 	if ( display_yellow ) {
-		display_led_status ( prefix, "Yellow", data_in[5] ) ;
+		display_led_status ( prefix, "Yellow", __dev_state.yellow_led ) ;
 	}
 	// *** Display Red Led status
 	if ( display_red ) {
-		display_led_status ( prefix, "Red   ", data_in[6] ) ;
+		display_led_status ( prefix, "Red   ", __dev_state.red_led ) ;
 	}
 
 	return EXIT_SUCCESS ;
@@ -200,18 +219,18 @@ int main ( int argc, char **argv, char **envv ) {
 		case 'r':
 			if ( parse_led_setstate ( &red_led, optarg, i ) != 0 )
 				return EXIT_FAILURE ;
-                        display_red = 1 ;
+			display_red = 1 ;
 			break ;
 		case 'y':
 			if ( parse_led_setstate ( &yellow_led, optarg, i ) !=
 			     0 )
 				return EXIT_FAILURE ;
-                        display_yellow = 1 ;
+			display_yellow = 1 ;
 			break ;
 		case 'g':
 			if ( parse_led_setstate ( &green_led, optarg, i ) != 0 )
 				return EXIT_FAILURE ;
-                        display_green = 1 ;
+			display_green = 1 ;
 			break ;
 		case 's':
 			if ( sscanf
@@ -306,8 +325,8 @@ int main ( int argc, char **argv, char **envv ) {
 				return EXIT_FAILURE ;
 			}
 
-                        snprintf ( sDeviceAddress, 20, "[%03d:%03d] ",
-                                   devBus, devAddress ) ;
+			snprintf ( sDeviceAddress, 20, "[%03d:%03d] ",
+				   devBus, devAddress ) ;
 
 			r = process_device ( handle, sDeviceAddress, red_led,
 					     green_led, yellow_led,
@@ -334,3 +353,9 @@ int main ( int argc, char **argv, char **envv ) {
 
 	return r ;
 }
+
+/* Local Variables:    */
+/* mode: c             */
+/* c-basic-offset: 8   */
+/* indent-tabs-mode: t */
+/* End:                */
