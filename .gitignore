@@ -17,12 +17,15 @@
 
 # ignore compilation results
 
+hyg-usb
 build/*
 src/config.h
 
 
-
-
+Makefile
+CMakeFiles/
+CMakeCache.txt
+*.cmake
 
 
 
