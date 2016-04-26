@@ -200,15 +200,18 @@ int main ( int argc, char **argv, char **envv ) {
 		case 'r':
 			if ( parse_led_setstate ( &red_led, optarg, i ) != 0 )
 				return EXIT_FAILURE ;
+                        display_red = 1 ;
 			break ;
 		case 'y':
 			if ( parse_led_setstate ( &yellow_led, optarg, i ) !=
 			     0 )
 				return EXIT_FAILURE ;
+                        display_yellow = 1 ;
 			break ;
 		case 'g':
 			if ( parse_led_setstate ( &green_led, optarg, i ) != 0 )
 				return EXIT_FAILURE ;
+                        display_green = 1 ;
 			break ;
 		case 's':
 			if ( sscanf
