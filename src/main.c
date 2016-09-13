@@ -29,7 +29,7 @@ typedef struct __attribute__ ((packed)) {
 	u_int8_t green_led ;
 	u_int8_t yellow_led ;
 	u_int8_t red_led ;
-	signed char fill ;
+	signed char parity ;
 } __INTERNAL_DEVSTATE ;
 
 void print_usage (  ) {
@@ -125,6 +125,7 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 	}
 
 	// Read Data
+	
 	r = libusb_interrupt_transfer ( handle, 0x81, (unsigned char *)&__dev_state,
 					sizeof(__INTERNAL_DEVSTATE),
 					&transferred, 5000 ) ;
@@ -135,8 +136,18 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 			  libusb_error_name ( r ) ) ;
 		return EXIT_FAILURE ;
 	}
+	
 	if ( transferred < 8 ) {
 		fprintf ( stderr, "Short read from hyg-usb. Exiting.\n" ) ;
+		return EXIT_FAILURE ;
+	}
+
+
+	unsigned char* data ;
+	data = &__dev_state ;
+
+	if ( data[7] != ( data[0] ^ data[1] ^ data[2] ^ data[3] ^ data[4] ^ data[5] ^ data[6] )  ) {
+		fprintf( stderr, "Parity Error. Exiting \n" ) ;
 		return EXIT_FAILURE ;
 	}
 
