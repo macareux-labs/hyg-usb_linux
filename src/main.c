@@ -32,6 +32,14 @@ typedef struct __attribute__ ((packed)) {
 	signed char parity ;
 } __INTERNAL_DEVSTATE ;
 
+int parity_check ( __INTERNAL_DEVSTATE __dev_state ) {
+
+	unsigned char* data ;
+	data = (unsigned char*) &__dev_state ;
+	return data[7] == ( data[0] ^ data[1] ^ data[2] ^ data[3] ^ data[4] ^ data[5] ^ data[6] ) ;
+}
+
+
 void print_usage (  ) {
 	fprintf ( stdout, "Usage: hyg-usb [options]\n" ) ;
 	fprintf ( stdout, "Options:\n" ) ;
@@ -125,31 +133,47 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 	}
 
 	// Read Data
-	
-	r = libusb_interrupt_transfer ( handle, 0x81, (unsigned char *)&__dev_state,
+
+	int count = 0 ;
+	int success ;
+
+	do {
+		count++ ;
+		success = 1 ;
+
+		r = libusb_interrupt_transfer ( handle, 0x81, (unsigned char *)&__dev_state,
 					sizeof(__INTERNAL_DEVSTATE),
 					&transferred, 5000 ) ;
 
-	if ( r != 0 ) {
-		fprintf ( stderr,
-			  "Could not read data from hyg-usb (%s). Exiting.\n",
-			  libusb_error_name ( r ) ) ;
-		return EXIT_FAILURE ;
-	}
-	
-	if ( transferred < 8 ) {
-		fprintf ( stderr, "Short read from hyg-usb. Exiting.\n" ) ;
-		return EXIT_FAILURE ;
-	}
+
+		if ( !parity_check( __dev_state ) ) {
+			fprintf( stderr,
+				"Parity Check Failed. Retrying ...\n" ) ;
+			success = 0 ;
+		}
+
+		if ( r != 0 ) {
+			fprintf ( stderr,
+				  "Could not read data from hyg-usb (%s). Retrying ...\n",
+				  libusb_error_name ( r ) ) ;
+			success = 0 ;
+		}
+		
+		if ( transferred < 8 ) {
+			fprintf ( stderr, "Short read from hyg-usb. Retrying ...\n" ) ;
+			success = 0 ;
+		}
 
 
-	unsigned char* data ;
-	data = &__dev_state ;
 
-	if ( data[7] != ( data[0] ^ data[1] ^ data[2] ^ data[3] ^ data[4] ^ data[5] ^ data[6] )  ) {
-		fprintf( stderr, "Parity Error. Exiting \n" ) ;
+	  } while ( !success && ( count < 3 ) ) ;
+
+
+	 if ( !success ) {
+
+		fprintf( stderr, "Still failing after %d attempts. Exiting.\n", count ) ;
 		return EXIT_FAILURE ;
-	}
+	 }
 
 	// *** Display Hyg
 	hyg = 125.0 * ntohs(__dev_state.hyg.value) / 65536.0 - 6.0 ;
