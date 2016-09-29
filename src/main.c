@@ -22,7 +22,7 @@ typedef union {
 	u_int16_t value ;
 } __DWORD ;
 
-typedef struct __attribute__ ((packed)) {
+typedef struct __attribute__ ( ( packed ) ) {
 	__DWORD hyg ;
 	__DWORD temp ;
 
@@ -34,9 +34,11 @@ typedef struct __attribute__ ((packed)) {
 
 int parity_check ( __INTERNAL_DEVSTATE __dev_state ) {
 
-	unsigned char* data ;
-	data = (unsigned char*) &__dev_state ;
-	return data[7] == ( data[0] ^ data[1] ^ data[2] ^ data[3] ^ data[4] ^ data[5] ^ data[6] ) ;
+	unsigned char *data ;
+	data = ( unsigned char * ) &__dev_state ;
+	return data[7] ==
+		( data[0] ^ data[1] ^ data[2] ^ data[3] ^ data[4] ^ data[5] ^
+		  data[6] ) ;
 }
 
 
@@ -44,21 +46,34 @@ void print_usage (  ) {
 	fprintf ( stdout, "Usage: hyg-usb [options]\n" ) ;
 	fprintf ( stdout, "Options:\n" ) ;
 	fprintf ( stdout, " -h	           \t display this help and exit\n" ) ;
-	fprintf ( stdout, " -v	           \t display version number and exit\n" ) ;
-	fprintf ( stdout, " -r [ON|OFF|AUTO]  \t set mode for red led to ON,OFF or AUTO\n" ) ;
-	fprintf ( stdout, " -y [ON|OFF|AUTO]  \t set mode for yellow led to ON,OFF or AUTO\n" ) ;
-	fprintf ( stdout, " -g [ON|OFF|AUTO]  \t set mode for green led to ON,OFF or AUTO\n" ) ;
-	fprintf ( stdout, " -s 001:002        \t select device by bus and device number\n" ) ;
-	fprintf ( stdout, " -T                \t display current temperature\n" ) ;
-	fprintf ( stdout, " -H                \t display current relative humidity\n" ) ;
-	fprintf ( stdout, " -R                \t display current mode of red led\n" ) ;
-	fprintf ( stdout, " -Y                \t display current mode of yellow led\n" ) ;
-	fprintf ( stdout, " -G                \t display current mode of green led\n" ) ;
+	fprintf ( stdout,
+		  " -v	           \t display version number and exit\n" ) ;
+	fprintf ( stdout,
+		  " -r [ON|OFF|AUTO]  \t set mode for red led to ON,OFF or AUTO\n" ) ;
+	fprintf ( stdout,
+		  " -y [ON|OFF|AUTO]  \t set mode for yellow led to ON,OFF or AUTO\n" ) ;
+	fprintf ( stdout,
+		  " -g [ON|OFF|AUTO]  \t set mode for green led to ON,OFF or AUTO\n" ) ;
+	fprintf ( stdout,
+		  " -s 001:002        \t select device by bus and device number\n" ) ;
+	fprintf ( stdout,
+		  " -T                \t display current temperature\n" ) ;
+	fprintf ( stdout,
+		  " -H                \t display current relative humidity\n" ) ;
+	fprintf ( stdout,
+		  " -R                \t display current mode of red led\n" ) ;
+	fprintf ( stdout,
+		  " -Y                \t display current mode of yellow led\n" ) ;
+	fprintf ( stdout,
+		  " -G                \t display current mode of green led\n" ) ;
 	fprintf ( stdout, "\n" ) ;
 	fprintf ( stdout, "Examples:\n" ) ;
-	fprintf ( stdout, "  hyg-usb -r ON                \t turns red led on \n" ) ;
-	fprintf ( stdout, "  hyg-usb -r ON -g OFF -y AUTO \t turns red led on, green led off, and yellow led will blink \n" ) ;
-	fprintf ( stdout, "  hyg-usb -T                   \t display current temperature\n" ) ;
+	fprintf ( stdout,
+		  "  hyg-usb -r ON                \t turns red led on \n" ) ;
+	fprintf ( stdout,
+		  "  hyg-usb -r ON -g OFF -y AUTO \t turns red led on, green led off, and yellow led will blink \n" ) ;
+	fprintf ( stdout,
+		  "  hyg-usb -T                   \t display current temperature\n" ) ;
 }
 
 int parse_led_setstate ( char *led, char *optarg, char arg ) {
@@ -104,7 +119,7 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 	int i, r ;
 	int transferred ;
 
-	__INTERNAL_DEVSTATE __dev_state;
+	__INTERNAL_DEVSTATE __dev_state ;
 	unsigned char data_out[12] ;
 
 	int hyg_data ;
@@ -119,8 +134,8 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 	data_out[2] = red_led ;
 	data_out[3] = 'A' ;
 
-	r = libusb_interrupt_transfer ( handle, 0x01, data_out, 4, &transferred,
-					5000 ) ;
+	r = libusb_interrupt_transfer ( handle, 0x01, data_out, 4,
+					&transferred, 5000 ) ;
 	if ( r != 0 ) {
 		fprintf ( stderr,
 			  "Could not send data to hyg-usb (%s). Exiting.\n",
@@ -131,7 +146,6 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 		fprintf ( stderr, "Short write to hyg-usb. Exiting.\n" ) ;
 		return EXIT_FAILURE ;
 	}
-
 	// Read Data
 
 	int count = 0 ;
@@ -141,14 +155,16 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 		count++ ;
 		success = 1 ;
 
-		r = libusb_interrupt_transfer ( handle, 0x81, (unsigned char *)&__dev_state,
-					sizeof(__INTERNAL_DEVSTATE),
-					&transferred, 5000 ) ;
+		r = libusb_interrupt_transfer ( handle, 0x81,
+						( unsigned char * )
+						&__dev_state,
+						sizeof ( __INTERNAL_DEVSTATE ),
+						&transferred, 5000 ) ;
 
 
-		if ( !parity_check( __dev_state ) ) {
-			fprintf( stderr,
-				"Parity Check Failed. Retrying ...\n" ) ;
+		if ( !parity_check ( __dev_state ) ) {
+			fprintf ( stderr,
+				  "Parity Check Failed. Retrying ...\n" ) ;
 			success = 0 ;
 		}
 
@@ -158,31 +174,33 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 				  libusb_error_name ( r ) ) ;
 			success = 0 ;
 		}
-		
+
 		if ( transferred < 8 ) {
-			fprintf ( stderr, "Short read from hyg-usb. Retrying ...\n" ) ;
+			fprintf ( stderr,
+				  "Short read from hyg-usb. Retrying ...\n" ) ;
 			success = 0 ;
 		}
 
 
 
-	  } while ( !success && ( count < 3 ) ) ;
+	} while ( !success && ( count < 3 ) ) ;
 
 
-	 if ( !success ) {
+	if ( !success ) {
 
-		fprintf( stderr, "Still failing after %d attempts. Exiting.\n", count ) ;
+		fprintf ( stderr,
+			  "Still failing after %d attempts. Exiting.\n",
+			  count ) ;
 		return EXIT_FAILURE ;
-	 }
-
+	}
 	// *** Display Hyg
-	hyg = 125.0 * ntohs(__dev_state.hyg.value) / 65536.0 - 6.0 ;
+	hyg = 125.0 * ntohs ( __dev_state.hyg.value ) / 65536.0 - 6.0 ;
 
 	if ( display_hyg )
 		fprintf ( stdout, "%sHyg  : %6.2f%%\n", prefix, hyg ) ;
 
 	// *** Display Temp
-	temp = 175.72 * ntohs( __dev_state.temp.value ) / 65536.0 - 46.85 ;
+	temp = 175.72 * ntohs ( __dev_state.temp.value ) / 65536.0 - 46.85 ;
 
 	if ( display_temp )
 		fprintf ( stdout, "%sTemp : %6.2f°C\n", prefix, temp ) ;
@@ -193,7 +211,8 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 	}
 	// *** Display Yellow Led status
 	if ( display_yellow ) {
-		display_led_status ( prefix, "Yellow", __dev_state.yellow_led ) ;
+		display_led_status ( prefix, "Yellow",
+				     __dev_state.yellow_led ) ;
 	}
 	// *** Display Red Led status
 	if ( display_red ) {
@@ -263,7 +282,8 @@ int main ( int argc, char **argv, char **envv ) {
 			display_yellow = 1 ;
 			break ;
 		case 'g':
-			if ( parse_led_setstate ( &green_led, optarg, i ) != 0 )
+			if ( parse_led_setstate ( &green_led, optarg, i ) !=
+			     0 )
 				return EXIT_FAILURE ;
 			display_green = 1 ;
 			break ;
@@ -311,7 +331,8 @@ int main ( int argc, char **argv, char **envv ) {
 	// *** USB Communication
 	r = libusb_init ( NULL ) ;
 	if ( r != 0 ) {
-		fprintf ( stderr, "Could not initialize libusb (%s). Exiting\n",
+		fprintf ( stderr,
+			  "Could not initialize libusb (%s). Exiting\n",
 			  libusb_error_name ( r ) ) ;
 		return EXIT_FAILURE ;
 	}
@@ -319,7 +340,7 @@ int main ( int argc, char **argv, char **envv ) {
 	cnt = libusb_get_device_list ( NULL, &devs ) ;
 	if ( cnt < 0 ) {
 		fprintf ( stderr, "Could not find usb devices. Exiting\n" ) ;
-		return ( int )cnt ;
+		return ( int ) cnt ;
 	}
 
 	i = 0 ;
