@@ -161,13 +161,6 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 						sizeof ( __INTERNAL_DEVSTATE ),
 						&transferred, 5000 ) ;
 
-
-		if ( !parity_check ( __dev_state ) ) {
-			fprintf ( stderr,
-				  "Parity Check Failed. Retrying ...\n" ) ;
-			success = 0 ;
-		}
-
 		if ( r != 0 ) {
 			fprintf ( stderr,
 				  "Could not read data from hyg-usb (%s). Retrying ...\n",
@@ -181,7 +174,11 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 			success = 0 ;
 		}
 
-
+		if ( !parity_check ( __dev_state ) ) {
+			fprintf ( stderr,
+				  "Parity Check Failed. Retrying ...\n" ) ;
+			success = 0 ;
+		}
 
 	} while ( !success && ( count < 3 ) ) ;
 
