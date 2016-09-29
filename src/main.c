@@ -13,6 +13,8 @@
 #define HYGUSB_VID      0x04D8
 #define HYGUSB_PID      0xF2C4
 
+#define FALSE 0
+#define TRUE !FALSE
 
 typedef union {
 	struct {
@@ -33,12 +35,34 @@ typedef struct __attribute__ ( ( packed ) ) {
 } __INTERNAL_DEVSTATE ;
 
 int parity_check ( __INTERNAL_DEVSTATE __dev_state ) {
-
 	unsigned char *data ;
-	data = ( unsigned char * ) &__dev_state ;
-	return data[7] ==
-		( data[0] ^ data[1] ^ data[2] ^ data[3] ^ data[4] ^ data[5] ^
-		  data[6] ) ;
+
+	if ( __dev_state.parity == 0 ) {
+		/* Original firmware ? */
+		/* can only confirm known data are ok */
+
+		if ( __dev_state.green_led != 0
+		     && __dev_state.green_led != 1
+		     && __dev_state.green_led != 0xFF )
+			return FALSE ;
+
+		if ( __dev_state.yellow_led != 0
+		     && __dev_state.yellow_led != 1
+		     && __dev_state.yellow_led != 0xFF )
+			return FALSE ;
+
+		if ( __dev_state.red_led != 0
+		     && __dev_state.red_led != 1
+		     && __dev_state.red_led != 0xFF )
+			return FALSE ;
+
+		return TRUE ;
+	} else {
+		data = ( unsigned char * ) &__dev_state ;
+		return data[7] ==
+			( data[0] ^ data[1] ^ data[2] ^ data[3] ^ data[4] ^
+			  data[5] ^ data[6] ) ;
+	}
 }
 
 
