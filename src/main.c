@@ -12,6 +12,7 @@
 
 #define HYGUSB_VID      0x04D8
 #define HYGUSB_PID      0xF2C4
+#define MAX_DEVICE_ID   25
 
 #define FALSE 0
 #define TRUE !FALSE
@@ -262,7 +263,7 @@ int main ( int argc, char **argv, char **envv ) {
 	int i, r ;
 	ssize_t cnt ;
 
-	char sDeviceAddress[20] ;
+	char sDeviceAddress[MAX_DEVICE_ID] ;
 	// *** CLI options parsing
 
 	opterr = 0 ;
@@ -402,8 +403,24 @@ int main ( int argc, char **argv, char **envv ) {
 				return EXIT_FAILURE ;
 			}
 
-			snprintf ( sDeviceAddress, 20, "[%03d:%03d] ",
-				   devBus, devAddress ) ;
+			if ( desc.iSerialNumber > 0 ) {
+				r = libusb_get_string_descriptor_ascii
+					( handle, desc.iSerialNumber,
+					  sDeviceAddress + 1, MAX_DEVICE_ID ) ;
+
+				if ( r < 0 ) {
+					snprintf ( sDeviceAddress, 20,
+						   "[%03d:%03d] ", devBus,
+						   devAddress ) ;
+				} else {
+					*sDeviceAddress = '[' ;
+					strncat ( sDeviceAddress, "] ",
+						  MAX_DEVICE_ID ) ;
+				}
+			} else {
+				snprintf ( sDeviceAddress, 20, "[%03d:%03d] ",
+					   devBus, devAddress ) ;
+			}
 
 			r = process_device ( handle, sDeviceAddress, red_led,
 					     green_led, yellow_led,
