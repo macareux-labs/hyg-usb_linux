@@ -260,7 +260,7 @@ int main ( int argc, char **argv, char **envv ) {
 	int display_yellow = 0 ;
 
 	int selectBus = 0, selectAddress = 0 ;
-	int i, r ;
+	int i, r, m ;
 	ssize_t cnt ;
 
 	char sDeviceAddress[MAX_DEVICE_ID] ;
@@ -365,7 +365,7 @@ int main ( int argc, char **argv, char **envv ) {
 		return ( int ) cnt ;
 	}
 
-	i = 0 ;
+	i = 0 ; m = 0 ;
 	while ( ( dev = devs[i++] ) != NULL ) {
 		struct libusb_device_descriptor desc ;
 
@@ -403,6 +403,12 @@ int main ( int argc, char **argv, char **envv ) {
 				return EXIT_FAILURE ;
 			}
 
+			m ++ ; // Matched one device
+
+			if ( m > 1 ) {
+				fprintf ( stdout, "\n" ) ;
+			}
+
 			if ( desc.iSerialNumber > 0 ) {
 				r = libusb_get_string_descriptor_ascii
 					( handle, desc.iSerialNumber,
@@ -429,8 +435,6 @@ int main ( int argc, char **argv, char **envv ) {
 					     display_yellow ) ;
 
 			libusb_close ( handle ) ;
-
-			fprintf ( stdout, "\n" ) ;
 		}
 	}
 
