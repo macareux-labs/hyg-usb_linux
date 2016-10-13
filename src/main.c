@@ -153,33 +153,33 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 	float hyg ;
 	float temp ;
 
-	// Send Data
 	data_out[0] = green_led ;
 	data_out[1] = yellow_led ;
 	data_out[2] = red_led ;
 	data_out[3] = 'A' ;
 
-	r = libusb_interrupt_transfer ( handle, 0x01, data_out, 4,
-					&transferred, 5000 ) ;
-	if ( r != 0 ) {
-		fprintf ( stderr,
-			  "Could not send data to hyg-usb (%s). Exiting.\n",
-			  libusb_error_name ( r ) ) ;
-		return EXIT_FAILURE ;
-	}
-	if ( transferred < 4 ) {
-		fprintf ( stderr, "Short write to hyg-usb. Exiting.\n" ) ;
-		return EXIT_FAILURE ;
-	}
-	// Read Data
-
 	int count = 0 ;
-	int success ;
+	int success = 0 ;
 
 	do {
 		count++ ;
-		success = 1 ;
 
+		// Send Data
+		r = libusb_interrupt_transfer ( handle, 0x01, data_out, 4,
+						&transferred, 5000 ) ;
+		if ( r != 0 ) {
+			fprintf ( stderr,
+				  "Could not send data to hyg-usb (%s). Exiting.\n",
+				  libusb_error_name ( r ) ) ;
+			return EXIT_FAILURE ;
+		}
+
+		if ( transferred < 4 ) {
+			fprintf ( stderr, "Short write to hyg-usb. Exiting.\n" ) ;
+			return EXIT_FAILURE ;
+		}
+
+		// Read Data
 		r = libusb_interrupt_transfer ( handle, 0x81,
 						( unsigned char * )
 						&__dev_state,
@@ -190,20 +190,22 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 			fprintf ( stderr,
 				  "Could not read data from hyg-usb (%s). Retrying ...\n",
 				  libusb_error_name ( r ) ) ;
-			success = 0 ;
+			continue ;
 		}
 
 		if ( transferred < 8 ) {
 			fprintf ( stderr,
 				  "Short read from hyg-usb. Retrying ...\n" ) ;
-			success = 0 ;
+			continue ;
 		}
 
 		if ( !parity_check ( __dev_state ) ) {
 			fprintf ( stderr,
 				  "Parity Check Failed. Retrying ...\n" ) ;
-			success = 0 ;
+			continue ;
 		}
+
+		success = 1 ;
 
 	} while ( !success && ( count < 3 ) ) ;
 
