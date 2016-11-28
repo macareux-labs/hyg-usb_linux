@@ -35,7 +35,20 @@ typedef struct __attribute__ ( ( packed ) ) {
 	signed char parity ;
 } __INTERNAL_DEVSTATE ;
 
-int parity_check ( __INTERNAL_DEVSTATE __dev_state ) {
+typedef struct {
+
+	enum { __DISPLAY_TEXT = 0, __DISPLAY_JSON= 1, __DISPLAY_CSV = 2} mode;
+
+	int display_temp ;
+	int display_hyg  ;
+	int display_red  ;
+	int display_green ;
+	int display_yellow  ;
+
+} __DISPLAY_SPECS;
+
+int
+parity_check ( __INTERNAL_DEVSTATE __dev_state ) {
 	unsigned char *data ;
 
 	if ( __dev_state.parity == 0 ) {
@@ -66,8 +79,8 @@ int parity_check ( __INTERNAL_DEVSTATE __dev_state ) {
 	}
 }
 
-
-void print_usage (  ) {
+void
+print_usage (  ) {
 	fprintf ( stdout, "Usage: hyg-usb [options]\n" ) ;
 	fprintf ( stdout, "Options:\n" ) ;
 	fprintf ( stdout, " -h	           \t display this help and exit\n" ) ;
@@ -91,6 +104,10 @@ void print_usage (  ) {
 		  " -Y                \t display current mode of yellow led\n" ) ;
 	fprintf ( stdout,
 		  " -G                \t display current mode of green led\n" ) ;
+	fprintf ( stdout,
+		  " -c                \t display as CSV data\n" ) ;
+	fprintf ( stdout,
+		  " -j                \t display as JSON data\n" ) ;
 	fprintf ( stdout, "\n" ) ;
 	fprintf ( stdout, "Examples:\n" ) ;
 	fprintf ( stdout,
@@ -101,7 +118,8 @@ void print_usage (  ) {
 		  "  hyg-usb -T                   \t display current temperature\n" ) ;
 }
 
-int parse_led_setstate ( char *led, char *optarg, char arg ) {
+int
+parse_led_setstate ( char *led, char *optarg, char arg ) {
 	if ( strcmp ( optarg, "ON" ) == 0 ) {
 		*led = 'A' ;
 	} else if ( strcmp ( optarg, "OFF" ) == 0 ) {
@@ -116,30 +134,34 @@ int parse_led_setstate ( char *led, char *optarg, char arg ) {
 	return 0 ;
 }
 
-void display_led_status ( const char *sPrefix, const char *sLedId, int state ) {
-	fprintf ( stdout, "%s%s LED : ", sPrefix, sLedId ) ;
+const char*
+get_led_status ( int state ) {
 	switch ( state ) {
 	case 0x01:
-		fprintf ( stdout, "ON" ) ;
+		return "ON" ;
 		break ;
 	case 0x00:
-		fprintf ( stdout, "OFF" ) ;
+		return "OFF" ;
 		break ;
 	case 0xFF:
-		fprintf ( stdout, "AUTO" ) ;
+		return "AUTO" ;
 		break ;
 	default:
-		fprintf ( stdout, "Unknown (0x%02X)", state & 0xFF ) ;
+		return "Unknown" ;
 		break ;
 	}
-	fprintf ( stdout, "\n" ) ;
+}
+
+void
+display_led_status ( const char *sPrefix, const char *sLedId, int state ) {
+	fprintf ( stdout, "[%s] %s LED : %s\n",
+		  sPrefix, sLedId, get_led_status ( state ) ) ;
 }
 
 int
-process_device ( libusb_device_handle * handle, const char *prefix,
+process_device ( libusb_device_handle * handle, const char *deviceId,
 		 char red_led, char green_led, char yellow_led,
-		 int display_temp, int display_hyg, int display_red,
-		 int display_green, int display_yellow ) {
+		 __DISPLAY_SPECS *ds ) {
 
 	int i, r ;
 	int transferred ;
@@ -217,36 +239,67 @@ process_device ( libusb_device_handle * handle, const char *prefix,
 			  count ) ;
 		return EXIT_FAILURE ;
 	}
-	// *** Display Hyg
+
+	// Calculate human readable value for hygro / temp
 	hyg = 125.0 * ntohs ( __dev_state.hyg.value ) / 65536.0 - 6.0 ;
-
-	if ( display_hyg )
-		fprintf ( stdout, "%sHyg  : %6.2f%%\n", prefix, hyg ) ;
-
-	// *** Display Temp
 	temp = 175.72 * ntohs ( __dev_state.temp.value ) / 65536.0 - 46.85 ;
 
-	if ( display_temp )
-		fprintf ( stdout, "%sTemp : %6.2f°C\n", prefix, temp ) ;
+	if ( ds -> mode == __DISPLAY_TEXT ) {
+		// *** Display Hyg
+		if ( ds -> display_hyg )
+			fprintf ( stdout, "[%s] Hyg  : %6.2f%%\n", deviceId, hyg ) ;
 
-	// *** Display Green Led status
-	if ( display_green ) {
-		display_led_status ( prefix, "Green ", __dev_state.green_led ) ;
-	}
-	// *** Display Yellow Led status
-	if ( display_yellow ) {
-		display_led_status ( prefix, "Yellow",
-				     __dev_state.yellow_led ) ;
-	}
-	// *** Display Red Led status
-	if ( display_red ) {
-		display_led_status ( prefix, "Red   ", __dev_state.red_led ) ;
+		// *** Display Temp
+		if ( ds -> display_temp )
+			fprintf ( stdout, "[%s] Temp : %6.2f°C\n", deviceId, temp ) ;
+
+		// *** Display Green Led status
+		if ( ds -> display_green ) {
+			display_led_status ( deviceId, "Green ",
+					     __dev_state.green_led ) ;
+		}
+		// *** Display Yellow Led status
+		if ( ds -> display_yellow ) {
+			display_led_status ( deviceId, "Yellow",
+					     __dev_state.yellow_led ) ;
+		}
+		// *** Display Red Led status
+		if ( ds -> display_red ) {
+			display_led_status ( deviceId, "Red   ",
+					     __dev_state.red_led ) ;
+		}
+	} else {
+		if ( ds -> mode == __DISPLAY_JSON ) {
+
+			fprintf ( stdout, "\"%s\" : { \"measures\": { \""
+				  "temperature\" : %5.2f, \"hygrometry\" : %5.2f },"
+				  " \"leds\" : { \"green\": \"%s\", \"yellow\":"
+				  " \"%s\", \"red\" : \"%s\" } }",
+				  deviceId, temp, hyg,
+				  get_led_status ( __dev_state.green_led ),
+				  get_led_status ( __dev_state.yellow_led ),
+				  get_led_status ( __dev_state.red_led )
+
+				) ;
+
+		} else {
+			/* CSV Output */
+			fprintf ( stdout, "%s,%5.2f,%5.2f,%s,%s,%s\n",
+				  deviceId, temp, hyg,
+				  get_led_status ( __dev_state.green_led ),
+				  get_led_status ( __dev_state.yellow_led ),
+				  get_led_status ( __dev_state.red_led )
+
+				) ;
+
+		}
 	}
 
 	return EXIT_SUCCESS ;
 }
 
-int main ( int argc, char **argv, char **envv ) {
+int
+main ( int argc, char **argv, char **envv ) {
 	libusb_device **devs ;
 	libusb_device *dev ;
 	libusb_device_handle *handle = NULL ;
@@ -255,11 +308,7 @@ int main ( int argc, char **argv, char **envv ) {
 	char green_led = 'D' ;
 	char yellow_led = 'D' ;
 
-	int display_temp = 0 ;
-	int display_hyg = 0 ;
-	int display_red = 0 ;
-	int display_green = 0 ;
-	int display_yellow = 0 ;
+	__DISPLAY_SPECS ds = { 0, 0, 0, 0, 0, 0 } ;
 
 	int selectBus = 0, selectAddress = 0 ;
 	int i, r, m ;
@@ -270,7 +319,7 @@ int main ( int argc, char **argv, char **envv ) {
 
 	opterr = 0 ;
 
-	while ( ( i = getopt ( argc, argv, "vhr:y:g:THRYGs:" ) ) != -1 ) {
+	while ( ( i = getopt ( argc, argv, "vhr:y:g:THRYGs:cj" ) ) != -1 ) {
 		switch ( i ) {
 		case 'v':
 			fprintf ( stdout, "hyg-usb %d.%d (Linux)\n",
@@ -280,36 +329,42 @@ int main ( int argc, char **argv, char **envv ) {
 			print_usage (  ) ;
 			return EXIT_SUCCESS ;
 		case 'T':
-			display_temp = 1 ;
+			ds . display_temp = 1 ;
 			break ;
 		case 'H':
-			display_hyg = 1 ;
+			ds . display_hyg = 1 ;
 			break ;
 		case 'R':
-			display_red = 1 ;
+			ds . display_red = 1 ;
 			break ;
 		case 'Y':
-			display_yellow = 1 ;
+			ds . display_yellow = 1 ;
 			break ;
 		case 'G':
-			display_green = 1 ;
+			ds . display_green = 1 ;
+			break ;
+		case 'c':
+			ds . mode = __DISPLAY_CSV ;
+			break ;
+		case 'j':
+			ds . mode = __DISPLAY_JSON ;
 			break ;
 		case 'r':
 			if ( parse_led_setstate ( &red_led, optarg, i ) != 0 )
 				return EXIT_FAILURE ;
-			display_red = 1 ;
+			ds . display_red = 1 ;
 			break ;
 		case 'y':
 			if ( parse_led_setstate ( &yellow_led, optarg, i ) !=
 			     0 )
 				return EXIT_FAILURE ;
-			display_yellow = 1 ;
+			ds . display_yellow = 1 ;
 			break ;
 		case 'g':
 			if ( parse_led_setstate ( &green_led, optarg, i ) !=
 			     0 )
 				return EXIT_FAILURE ;
-			display_green = 1 ;
+			ds . display_green = 1 ;
 			break ;
 		case 's':
 			if ( sscanf
@@ -349,8 +404,8 @@ int main ( int argc, char **argv, char **envv ) {
 	}
 
 	if ( optind == 1 ) {
-		display_temp = 1 ;
-		display_hyg = 1 ;
+		ds . display_temp = 1 ;
+		ds . display_hyg = 1 ;
 	}
 	// *** USB Communication
 	r = libusb_init ( NULL ) ;
@@ -365,6 +420,10 @@ int main ( int argc, char **argv, char **envv ) {
 	if ( cnt < 0 ) {
 		fprintf ( stderr, "Could not find usb devices. Exiting\n" ) ;
 		return ( int ) cnt ;
+	}
+
+	if ( ds . mode == __DISPLAY_JSON ) {
+		fprintf ( stdout, "{ " ) ;
 	}
 
 	i = 0 ; m = 0 ;
@@ -408,39 +467,42 @@ int main ( int argc, char **argv, char **envv ) {
 			m ++ ; // Matched one device
 
 			if ( m > 1 ) {
-				fprintf ( stdout, "\n" ) ;
+				if ( ds . mode == __DISPLAY_JSON ) {
+					fprintf ( stdout, "," ) ;
+				} else {
+					if ( ds . mode == __DISPLAY_TEXT ) {
+						fprintf ( stdout, "\n" ) ;
+					}
+				}
 			}
 
 			if ( desc.iSerialNumber > 0 ) {
 				r = libusb_get_string_descriptor_ascii
 					( handle, desc.iSerialNumber,
-					  sDeviceAddress + 1, MAX_DEVICE_ID ) ;
+					  sDeviceAddress, MAX_DEVICE_ID ) ;
 
 				if ( r < 0 ) {
 					snprintf ( sDeviceAddress, 20,
-						   "[%03d:%03d] ", devBus,
+						   "%03d:%03d", devBus,
 						   devAddress ) ;
-				} else {
-					*sDeviceAddress = '[' ;
-					strncat ( sDeviceAddress, "] ",
-						  MAX_DEVICE_ID ) ;
 				}
 			} else {
-				snprintf ( sDeviceAddress, 20, "[%03d:%03d] ",
+				snprintf ( sDeviceAddress, 20, "%03d:%03d",
 					   devBus, devAddress ) ;
 			}
 
 			r = process_device ( handle, sDeviceAddress, red_led,
-					     green_led, yellow_led,
-					     display_temp, display_hyg,
-					     display_red, display_green,
-					     display_yellow ) ;
+					     green_led, yellow_led, &ds ) ;
 
 			libusb_close ( handle ) ;
 		}
 	}
 
 	libusb_free_device_list ( devs, 1 ) ;
+
+	if ( ds . mode == __DISPLAY_JSON ) {
+		fprintf ( stdout, " }\n" ) ;
+	}
 
 	if ( handle == NULL ) {
 		fprintf ( stderr, "No device(s) found.\n" ) ;
